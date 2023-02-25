@@ -14,7 +14,7 @@ double y_parabola_upper(const double x) {
 }
 
 double y_parabola_lower(const double x) {
-    if (x < 0) {
+    if (x <= 0) {
         throw std::invalid_argument("Undefined at this point");
     }
     return -sqrt(x);
@@ -65,24 +65,48 @@ double integral(const double a,
         const double x1 = a + step * width;
         const double x2 = a + (step + 1) * width;
 
-        simpson_integral += (x2 - x1) / 6 * (func(x1) + 4 * func((x1 + x2) / 2) + func(x2));
+        try {
+            simpson_integral += (x2 - x1) / 6 * (func(x1) + 4 * func((x1 + x2) / 2) + func(x2));
+        }
+        catch(std::invalid_argument& e) {
+            continue;
+        }
     }
 
     return simpson_integral;
 }
 
 int main() {
-    std::vector<double> functions_cross, axis_parabola_cross;
+    std::vector<double> functions_cross, axis_parabola_cross, axis_line_cross;
 
     cross(y_parabola_upper, y_line, functions_cross);
     cross(y_parabola_lower, y_line, functions_cross);
 
     cross(y_parabola_upper, axis_parabola_cross);
     cross(y_parabola_lower, axis_parabola_cross);
+    cross(y_line, axis_line_cross);
 
     const double res = integral(axis_parabola_cross[0], functions_cross[0], y_parabola_upper) -
                        integral(axis_parabola_cross[0], functions_cross[1], y_parabola_lower) +
                        integral(functions_cross[0], functions_cross[1], y_line);
+
+    std::cout << "Parabola and line functions cross points: ";
+    for (double x : functions_cross) {
+        std::cout << "(" << x << ", " << y_line(x) << ") ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Parabola function and Ox axis cross points: ";
+    for (double x : axis_parabola_cross) {
+        std::cout << "(" << x << ", " << y_parabola_upper(x) << ") ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Line function and Ox axis cross points: ";
+    for (double x : axis_line_cross) {
+        std::cout << "(" << x << ", " << y_line(x) << ") ";
+    }
+    std::cout << std::endl;
 
     std::cout << "Area between two functions equals to " << res << std::endl;
     return 0;
